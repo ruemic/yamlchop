@@ -76,3 +76,7 @@ Live at: https://yamlchop.radicchio.page
 Domain candidates: yamlchop.com ($11.08/yr), yamlchop.page ($10.81/yr), yamlchop.dev ($10.81/yr)
 Repository: https://github.com/ruemic/yamlchop
 Part of the -chop family: hashchop, jwtchop, b64chop, epochop, csvchop, uuidchop, qrnch
+
+## Support
+
+https://bitterdesk.com/s/yamlchop/
