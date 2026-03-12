@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f0f0f"/>
+  <rect x="0" y="0" width="1200" height="4" fill="#c8a84e"/>
+  <text x="80" y="220" font-family="monospace" font-size="72" font-weight="bold" fill="#e0d8c8">yamlchop</text>
+  <text x="80" y="290" font-family="monospace" font-size="28" fill="#8f8577">YAML validator, formatter &amp; JSON converter</text>
+  <text x="80" y="390" font-family="monospace" font-size="22" fill="#c8a84e">server:</text>
+  <text x="80" y="430" font-family="monospace" font-size="22" fill="#c8a84e">  host: localhost</text>
+  <text x="80" y="470" font-family="monospace" font-size="22" fill="#c8a84e">  port: 8080</text>
+  <text x="80" y="540" font-family="monospace" font-size="18" fill="#8f8577">Validate · Format · Convert to JSON · Nothing uploaded · Free</text>
+  <text x="80" y="600" font-family="monospace" font-size="16" fill="#3a3a3a">bitter.sh</text>
+</svg>
