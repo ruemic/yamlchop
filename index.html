@@ -537,7 +537,7 @@
 
     <details>
       <summary>What kinds of YAML does yamlchop support?</summary>
-      <p>yamlchop supports YAML 1.2 including Kubernetes manifests, GitHub Actions workflows, docker-compose files, Ansible playbooks, Helm values files, CircleCI and GitLab CI configs, and any other standards-compliant YAML. Multi-document YAML (separated by <code>---</code>) is handled as a single document stream.</p>
+      <p>yamlchop supports YAML 1.2 including Kubernetes manifests, GitHub Actions workflows, docker-compose files, Ansible playbooks, Helm values files, CircleCI and GitLab CI configs, and any other standards-compliant YAML. Multi-document YAML (separated by <code>---</code>) is fully supported — each document is parsed and re-formatted independently. In JSON conversion mode, multiple documents produce a JSON array.</p>
     </details>
 
     <details>
@@ -663,23 +663,27 @@
       return;
     }
 
-    // YAML → format or JSON
+    // YAML → format or JSON (supports multi-document streams)
     try {
-      const parsed = jsyaml.load(raw, { schema: jsyaml.DEFAULT_SCHEMA });
+      const docs = [];
+      jsyaml.loadAll(raw, (doc) => docs.push(doc), { schema: jsyaml.DEFAULT_SCHEMA });
 
       if (currentMode === 'yaml') {
-        const formatted = jsyaml.dump(parsed, { indent: 2, lineWidth: -1, noRefs: true });
+        // Re-dump each document with --- separator
+        const formatted = docs.map(doc => jsyaml.dump(doc, { indent: 2, lineWidth: -1, noRefs: true })).join('---\n');
         out.textContent = formatted;
         lastParsed = formatted;
       } else {
-        const jsonOut = JSON.stringify(parsed, null, 2);
+        // JSON: single doc → object, multiple docs → array
+        const jsonOut = JSON.stringify(docs.length === 1 ? docs[0] : docs, null, 2);
         out.textContent = jsonOut;
         lastParsed = jsonOut;
       }
 
+      const docLabel = docs.length > 1 ? `✓ valid YAML (${docs.length} documents)` : '✓ valid YAML';
       out.className = 'output-pre valid';
       badge.className = 'status-badge valid';
-      badge.textContent = '✓ valid YAML';
+      badge.textContent = docLabel;
       errDetail.textContent = '';
       copyBtn.disabled = false;
     } catch (e) {
