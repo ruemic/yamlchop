@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>yamlchop — YAML Validator, Formatter &amp; JSON Converter Online</title>
+  <meta name="description" content="Paste YAML to instantly validate, format, and convert to JSON — all in your browser. No upload, no signup, nothing sent to a server. Handles Kubernetes manifests, GitHub Actions, docker-compose, and any YAML config.">
+  <meta name="keywords" content="yaml validator online, validate yaml, yaml to json, yaml formatter, yaml lint online, yaml syntax checker, kubernetes yaml validator, yaml parser online">
+  <meta property="og:title" content="yamlchop — YAML Validator, Formatter &amp; JSON Converter">
+  <meta property="og:description" content="Paste YAML, instantly validate it, format it, and convert to JSON. Nothing uploaded — runs entirely in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yamlchop.radicchio.page">
+  <meta property="og:image" content="https://yamlchop.radicchio.page/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://yamlchop.radicchio.page/og.png">
+  <meta name="twitter:title" content="yamlchop — YAML Validator &amp; JSON Converter">
+  <meta name="twitter:description" content="Paste YAML, get instant validation and JSON conversion. Browser-side, nothing uploaded.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yamlchop.radicchio.page">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "yamlchop",
+    "description": "Browser-side YAML validator, formatter, and JSON converter. Paste any YAML — Kubernetes manifests, GitHub Actions workflows, docker-compose files — and instantly validate, format, or convert to JSON. Nothing is uploaded to any server.",
+    "url": "https://yamlchop.radicchio.page",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Real-time YAML validation",
+      "YAML formatting and pretty-printing",
+      "YAML to JSON conversion",
+      "JSON to YAML conversion",
+      "Error location with line and column numbers",
+      "Copy to clipboard",
+      "Offline capable — no server required"
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is my YAML sent to a server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. yamlchop uses js-yaml, a JavaScript library that runs entirely in your browser. Your YAML is processed on your device and never transmitted anywhere. You can disconnect from the internet after the page loads — the tool still works."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What kinds of YAML does yamlchop support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "yamlchop supports YAML 1.2 including Kubernetes manifests, GitHub Actions workflows, docker-compose files, Ansible playbooks, Helm values files, CircleCI and GitLab CI configs, and any other standards-compliant YAML. Multi-document YAML (separated by ---) is handled as a single document stream."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does YAML validation fail on my Kubernetes manifest?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Common causes: inconsistent indentation (YAML requires spaces, not tabs), a colon followed by a space in a string value without quotes (e.g. 'message: hello: world' needs quoting as 'message: \"hello: world\"'), or special characters in unquoted strings. The error panel shows the exact line and column where the parser failed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I convert JSON to YAML?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Paste valid JSON into the input panel — yamlchop detects it automatically and converts it to clean YAML. Useful for converting API responses or configuration templates between formats."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does yamlchop handle multi-document YAML?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "yamlchop processes the first document in a multi-document YAML stream (documents separated by ---). This covers the most common case: a single Kubernetes resource or a single config block. For files with multiple resources, validate and convert each document individually."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does my YAML look different after formatting?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "YAML formatting normalizes your input: consistent 2-space indentation, explicit quoting for strings that need it, and canonical key ordering where the YAML spec allows. The formatted output is semantically identical to your input — the data structure is unchanged. Comments are not preserved (the YAML spec does not require parsers to retain comments)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between YAML and JSON?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "YAML is a superset of JSON — any valid JSON is also valid YAML. YAML adds human-friendly features: indentation instead of braces, comments with #, multiline strings, and anchor/alias references for repeating values. JSON is more portable for API data because its syntax is explicit and unambiguous. YAML is preferred for config files because it is easier to read and write by hand."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can yamlchop validate YAML against a schema?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Not yet — yamlchop currently validates YAML syntax (is it parseable YAML?) rather than semantic validity (does it match a specific schema like a Kubernetes CRD). Schema validation against JSON Schema is a planned paid feature. For Kubernetes specifically, kubectl apply --dry-run=client is the most reliable schema validator."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUyLpVCUh0FqL2vQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #e0d8c8;
+      --muted: #8f8577;
+      --accent: #c8a84e;
+      --green: #5a9e6f;
+      --red: #b05050;
+      --yellow: #c8a84e;
+      --font: 'JetBrains Mono', 'Fira Mono', 'Cascadia Code', 'Menlo', monospace;
+    }
+
+    html { font-size: 14px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--muted); font-weight: 400; }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-left: 8px;
+    }
+
+    main {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+      flex: 1;
+    }
+
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a2a1a;
+      border: 1px solid #2a3a2a;
+      color: var(--green);
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-bottom: 24px;
+    }
+
+    /* Mode tabs */
+    .mode-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .mode-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-bottom: -1px;
+    }
+
+    .mode-btn:hover { color: var(--text); }
+    .mode-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Split layout */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .pane-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    textarea, .output-pre {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.83rem;
+      padding: 12px;
+      resize: none;
+      min-height: 300px;
+      outline: none;
+      transition: border-color 0.15s;
+      line-height: 1.5;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .output-pre {
+      white-space: pre;
+      overflow: auto;
+      cursor: default;
+      user-select: text;
+    }
+
+    .output-pre.valid { border-color: #2a3a2a; }
+    .output-pre.error-state { border-color: #3a2a2a; color: var(--muted); font-style: italic; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      min-height: 28px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      padding: 2px 10px;
+      border-radius: 3px;
+    }
+
+    .status-badge.valid {
+      background: #1a2a1a;
+      border: 1px solid #2a3a2a;
+      color: var(--green);
+    }
+
+    .status-badge.invalid {
+      background: #2a1a1a;
+      border: 1px solid #3a2a2a;
+      color: var(--red);
+    }
+
+    .status-badge.empty {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .error-detail {
+      font-size: 0.78rem;
+      color: var(--red);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Copy button */
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn.copied { color: var(--green); border-color: var(--green); }
+
+    /* Content */
+    .content-section {
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      margin-top: 16px;
+    }
+
+    .content-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .content-section p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .content-section code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.82rem;
+      color: var(--accent);
+    }
+
+    /* FAQ */
+    .faq { margin-top: 28px; }
+
+    .faq h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+
+    details:first-of-type { border-top: 1px solid var(--border); }
+
+    summary {
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--text);
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; color: var(--muted); font-size: 1rem; }
+    details[open] summary::after { content: '−'; }
+
+    details p {
+      color: var(--muted);
+      font-size: 0.83rem;
+      line-height: 1.7;
+      padding-top: 10px;
+    }
+
+    details code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.8rem;
+      color: var(--accent);
+    }
+
+    /* Related */
+    .related {
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+      padding-top: 20px;
+    }
+
+    .related h3 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .related-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .related-links a {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .related-links a:hover { border-color: var(--accent); color: var(--text); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      .split { grid-template-columns: 1fr; }
+      textarea, .output-pre { min-height: 200px; }
+      .tagline { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">yaml<span>chop</span></div>
+  <div class="tagline">— paste YAML, get instant validation and JSON conversion</div>
+</header>
+
+<main>
+  <h1>YAML Validator, Formatter &amp; JSON Converter</h1>
+  <p class="subtitle">Paste any YAML — Kubernetes manifests, GitHub Actions, docker-compose — and instantly validate, format, or convert to JSON. Browser-side only.</p>
+  <div class="privacy-badge">Nothing uploaded &middot; runs entirely in your browser &middot; works offline</div>
+
+  <div class="mode-bar">
+    <button class="mode-btn active" id="btn-yaml" onclick="setMode('yaml')">Format YAML</button>
+    <button class="mode-btn" id="btn-json" onclick="setMode('json')">Convert to JSON</button>
+    <button class="mode-btn" id="btn-toyaml" onclick="setMode('toyaml')">JSON → YAML</button>
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="pane-label" id="input-label">Input</div>
+      <textarea id="input" placeholder="Paste YAML here..." oninput="processInput()" spellcheck="false" autocomplete="off" autocorrect="off"></textarea>
+    </div>
+    <div>
+      <div class="pane-label" id="output-label">Output</div>
+      <pre class="output-pre" id="output">Your output will appear here.</pre>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-badge empty" id="status-badge">waiting for input</div>
+    <div class="error-detail" id="error-detail"></div>
+  </div>
+
+  <div class="copy-row">
+    <button class="btn" id="copy-btn" onclick="copyOutput()" disabled>Copy output</button>
+  </div>
+
+  <div class="content-section">
+    <h2>What is yamlchop?</h2>
+    <p>
+      yamlchop is a free, browser-side tool for validating, formatting, and converting YAML. Paste any YAML document — a Kubernetes manifest, a GitHub Actions workflow, a docker-compose file, an Ansible playbook, or a Helm values file — and yamlchop tells you immediately whether it's valid and shows you a clean, formatted version.
+    </p>
+    <p>
+      The tool uses <a href="https://github.com/nodeca/js-yaml" style="color:var(--accent);text-decoration:none;">js-yaml</a>, a battle-tested JavaScript YAML parser that implements the YAML 1.2 spec. Everything runs locally in your browser via a CDN-loaded script — your data never leaves your device. Take the page offline and it still works.
+    </p>
+    <p>
+      When YAML validation fails, yamlchop shows you the exact line and column where the parser got confused. Common issues include tab characters instead of spaces (YAML requires spaces), unquoted colon-containing values like <code>message: hello: world</code>, and inconsistent indentation levels. Fix the error, paste again, and iterate.
+    </p>
+    <p>
+      Use the Convert to JSON mode to transform your YAML into pretty-printed JSON — useful when you need to pass YAML-formatted config to an API that only speaks JSON, or when you want to inspect deeply nested structures in a JSON viewer. Use the JSON → YAML mode to go in the other direction: paste a JSON object and get clean YAML back.
+    </p>
+  </div>
+
+  <div class="faq">
+    <h2>Frequently asked questions</h2>
+
+    <details>
+      <summary>Is my YAML sent to a server?</summary>
+      <p>No. yamlchop uses js-yaml, a JavaScript library that runs entirely in your browser. Your YAML is processed on your device and never transmitted anywhere. You can disconnect from the internet after the page loads — the tool still works.</p>
+    </details>
+
+    <details>
+      <summary>What kinds of YAML does yamlchop support?</summary>
+      <p>yamlchop supports YAML 1.2 including Kubernetes manifests, GitHub Actions workflows, docker-compose files, Ansible playbooks, Helm values files, CircleCI and GitLab CI configs, and any other standards-compliant YAML. Multi-document YAML (separated by <code>---</code>) is handled as a single document stream.</p>
+    </details>
+
+    <details>
+      <summary>Why does YAML validation fail on my Kubernetes manifest?</summary>
+      <p>Common causes: inconsistent indentation (YAML requires spaces, not tabs), a colon followed by a space in a string value without quotes (e.g. <code>message: hello: world</code> needs quoting as <code>message: "hello: world"</code>), or special characters in unquoted strings. The error panel shows the exact line and column where the parser failed.</p>
+    </details>
+
+    <details>
+      <summary>Can I convert JSON to YAML?</summary>
+      <p>Yes — use the JSON → YAML tab. Paste valid JSON into the input panel and yamlchop converts it to clean, formatted YAML. Useful for converting API responses or configuration templates between formats.</p>
+    </details>
+
+    <details>
+      <summary>Does yamlchop handle multi-document YAML?</summary>
+      <p>yamlchop processes the first document in a multi-document YAML stream (documents separated by <code>---</code>). This covers the most common case: a single Kubernetes resource or a single config block. For files with multiple resources, validate and convert each document individually.</p>
+    </details>
+
+    <details>
+      <summary>Why does my YAML look different after formatting?</summary>
+      <p>YAML formatting normalizes your input: consistent 2-space indentation, explicit quoting for strings that need it, and canonical key ordering where the YAML spec allows. The formatted output is semantically identical to your input — the data structure is unchanged. Comments are not preserved (the YAML spec does not require parsers to retain comments).</p>
+    </details>
+
+    <details>
+      <summary>What is the difference between YAML and JSON?</summary>
+      <p>YAML is a superset of JSON — any valid JSON is also valid YAML. YAML adds human-friendly features: indentation instead of braces, comments with <code>#</code>, multiline strings, and anchor/alias references for repeating values. JSON is more portable for API data because its syntax is explicit and unambiguous. YAML is preferred for config files because it is easier to read and write by hand.</p>
+    </details>
+
+    <details>
+      <summary>Can yamlchop validate YAML against a schema?</summary>
+      <p>Not yet — yamlchop currently validates YAML syntax (is it parseable YAML?) rather than semantic validity (does it match a specific schema like a Kubernetes CRD). Schema validation against JSON Schema is a planned paid feature. For Kubernetes specifically, <code>kubectl apply --dry-run=client</code> is the most reliable schema validator.</p>
+    </details>
+  </div>
+
+  <div class="related">
+    <h3>More tools from the -chop family</h3>
+    <div class="related-links">
+      <a href="https://csvchop.radicchio.page">csvchop — CSV to JSON</a>
+      <a href="https://hashchop.radicchio.page">hashchop — SHA hash generator</a>
+      <a href="https://jwtchop.radicchio.page">jwtchop — JWT decoder</a>
+      <a href="https://b64chop.radicchio.page">b64chop — Base64 encoder</a>
+      <a href="https://epochop.radicchio.page">epochop — Unix timestamp</a>
+      <a href="https://uuidchop.radicchio.page">uuidchop — UUID generator</a>
+      <a href="https://qrnch.radicchio.page">qrnch — QR code generator</a>
+      <a href="https://linkscrub.radicchio.page">linkscrub — URL cleaner</a>
+      <a href="https://envlint.com">envlint — .env validator</a>
+      <a href="https://cronfig.radicchio.page">cronfig — cron tester</a>
+      <a href="https://feedlint.radicchio.page">feedlint — RSS validator</a>
+      <a href="https://difflint.radicchio.page">difflint — diff linter</a>
+      <a href="https://radish.radicchio.page">radish — stack trace analyzer</a>
+      <a href="https://pxicons.com">pxicons — pixel favicon editor</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="https://bitterdesk.com/s/yamlchop/">Support</a>
+  <span>yamlchop — built by an independent developer</span>
+</footer>
+
+<script>
+  let currentMode = 'yaml';
+  let lastParsed = null;
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + mode).classList.add('active');
+
+    if (mode === 'toyaml') {
+      document.getElementById('input-label').textContent = 'JSON Input';
+      document.getElementById('output-label').textContent = 'YAML Output';
+      document.getElementById('input').placeholder = 'Paste JSON here...';
+    } else {
+      document.getElementById('input-label').textContent = 'YAML Input';
+      document.getElementById('output-label').textContent = mode === 'yaml' ? 'Formatted YAML' : 'JSON Output';
+      document.getElementById('input').placeholder = 'Paste YAML here...';
+    }
+
+    processInput();
+  }
+
+  function processInput() {
+    const raw = document.getElementById('input').value;
+    const out = document.getElementById('output');
+    const badge = document.getElementById('status-badge');
+    const errDetail = document.getElementById('error-detail');
+    const copyBtn = document.getElementById('copy-btn');
+
+    if (!raw.trim()) {
+      out.textContent = 'Your output will appear here.';
+      out.className = 'output-pre';
+      badge.className = 'status-badge empty';
+      badge.textContent = 'waiting for input';
+      errDetail.textContent = '';
+      copyBtn.disabled = true;
+      lastParsed = null;
+      return;
+    }
+
+    if (currentMode === 'toyaml') {
+      // JSON → YAML
+      try {
+        const parsed = JSON.parse(raw);
+        const yamlOut = jsyaml.dump(parsed, { indent: 2, lineWidth: -1 });
+        out.textContent = yamlOut;
+        out.className = 'output-pre valid';
+        badge.className = 'status-badge valid';
+        badge.textContent = '✓ valid JSON';
+        errDetail.textContent = '';
+        copyBtn.disabled = false;
+        lastParsed = yamlOut;
+      } catch (e) {
+        const msg = e.message.replace(/^JSON\.parse: /, '').replace(/^SyntaxError: /, '');
+        out.textContent = '';
+        out.className = 'output-pre error-state';
+        badge.className = 'status-badge invalid';
+        badge.textContent = '✗ invalid JSON';
+        errDetail.textContent = msg;
+        copyBtn.disabled = true;
+        lastParsed = null;
+      }
+      return;
+    }
+
+    // YAML → format or JSON
+    try {
+      const parsed = jsyaml.load(raw, { schema: jsyaml.DEFAULT_SCHEMA });
+
+      if (currentMode === 'yaml') {
+        const formatted = jsyaml.dump(parsed, { indent: 2, lineWidth: -1, noRefs: true });
+        out.textContent = formatted;
+        lastParsed = formatted;
+      } else {
+        const jsonOut = JSON.stringify(parsed, null, 2);
+        out.textContent = jsonOut;
+        lastParsed = jsonOut;
+      }
+
+      out.className = 'output-pre valid';
+      badge.className = 'status-badge valid';
+      badge.textContent = '✓ valid YAML';
+      errDetail.textContent = '';
+      copyBtn.disabled = false;
+    } catch (e) {
+      out.textContent = '';
+      out.className = 'output-pre error-state';
+      badge.className = 'status-badge invalid';
+      badge.textContent = '✗ invalid YAML';
+
+      // Extract friendly error message
+      let msg = e.message || 'Parse error';
+      // js-yaml includes "YAMLException:" prefix
+      msg = msg.replace(/^YAMLException:\s*/, '');
+      errDetail.textContent = msg;
+      copyBtn.disabled = true;
+      lastParsed = null;
+    }
+  }
+
+  function copyOutput() {
+    if (!lastParsed) return;
+    navigator.clipboard.writeText(lastParsed).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy output';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
