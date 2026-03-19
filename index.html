@@ -552,7 +552,7 @@
 
     <details>
       <summary>Does yamlchop handle multi-document YAML?</summary>
-      <p>yamlchop processes the first document in a multi-document YAML stream (documents separated by <code>---</code>). This covers the most common case: a single Kubernetes resource or a single config block. For files with multiple resources, validate and convert each document individually.</p>
+      <p>Yes. yamlchop supports multi-document YAML streams separated by <code>---</code>. In Format YAML mode, each document is parsed and re-formatted independently. In Convert to JSON mode, multiple YAML documents are returned as a JSON array.</p>
     </details>
 
     <details>
